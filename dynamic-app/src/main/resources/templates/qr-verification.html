@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .details-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #667eea;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .amount-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .amount-section .label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .amount-section .amount {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .amount-section .currency {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .verification-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .check-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #d4edda;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #155724;
+        }
+
+        .check-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #155724;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .error-state h2 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+
+        .error-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .debug-info {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            text-align: left;
+            font-family: monospace;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .amount-section .amount {
+                font-size: 28px;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: successBounce 0.6s ease-out;
+        }
+
+        @keyframes successBounce {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Loading State -->
+        <div id="loadingState" style="display: none;">
+            <div class="header">
+                <h1>Verifying Payment</h1>
+                <p>Please wait while we verify your transaction</p>
+            </div>
+            <div class="content" style="text-align: center;">
+                <div class="loader"></div>
+                <p style="margin-top: 20px; color: #666;">Processing your request...</p>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" style="display: none;">
+            <div class="header">
+                <h1>✓ Payment Verified</h1>
+                <p>Your transaction has been successfully verified</p>
+            </div>
+            <div class="content success-animation">
+                <div class="verification-check" style="display: flex; justify-content: center;">
+                    <div class="check-icon">✓</div>
+                </div>
+
+                <div class="status-badge success" style="display: block; text-align: center;">
+                    <span id="statusDisplay">Success</span>
+                </div>
+
+                <div class="amount-section">
+                    <div class="label">Transaction Amount</div>
+                    <div class="amount">
+                        <span id="amountDisplay">₹0.00</span>
+                    </div>
+                    <div class="currency" id="currencyDisplay">INR</div>
+                </div>
+
+                <div class="details-section">
+                    <div class="detail-row">
+                        <div class="detail-label">Transaction ID</div>
+                        <div class="detail-value" id="txnIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Payment ID</div>
+                        <div class="detail-value" id="paymentIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">User Name</div>
+                        <div class="detail-value" id="userNameDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" id="emailDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Date & Time</div>
+                        <div class="detail-value" id="dateDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" id="descDisplay">-</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="downloadReceipt()">📥 Download Receipt</button>
+                    <button class="btn btn-secondary" onclick="goHome()">🏠 Go Home</button>
+                </div>
+
+                <div class="debug-info" id="debugInfo" style="display: none;">
+                    <strong>Debug Info:</strong><br>
+                    <span id="debugContent"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none;">
+            <div class="header">
+                <h1>⚠ Verification Failed</h1>
+                <p>Unable to verify the scanned data</p>
+            </div>
+            <div class="content error-state">
+                <div class="error-icon">❌</div>
+                <h2>Invalid QR Data</h2>
+                <p id="errorMessage">The scanned QR code data is not valid or has been corrupted.</p>
+                <button class="btn btn-primary" onclick="goHome()">🏠 Go Home</button>
+
+                <div class="debug-info">
+                    <strong>Debug Info:</strong><br>
+                    URL: <span id="currentUrl"></span><br>
+                    Query String: <span id="queryString"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("QR Verification Page Loaded");
+        console.log("Current URL:", window.location.href);
+        console.log("Search params:", window.location.search);
+
+        // Parse QR data from URL
+        function parseQRData() {
+            console.log("Parsing QR Data...");
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrData = urlParams.get('data');
+
+            console.log("Raw QR Data:", qrData);
+
+            if (!qrData) {
+                console.error("No QR data in URL");
+                showError('No QR data provided in URL. Make sure you scanned the QR code from the PDF.');
+                return null;
+            }
+
+            try {
+                // Parse the QR data in format: txn=X&pid=Y&amt=Z&cur=C&status=S&date=D&user=U&email=E&desc=DESC
+                const params = new URLSearchParams(qrData);
+
+                const data = {
+                    txn: params.get('txn') || 'N/A',
+                    pid: params.get('pid') || 'N/A',
+                    amt: parseFloat(params.get('amt')) || 0,
+                    cur: params.get('cur') || 'INR',
+                    status: params.get('status') || 'UNKNOWN',
+                    date: params.get('date') || 'N/A',
+                    user: decodeURIComponent(params.get('user') || 'N/A'),
+                    email: decodeURIComponent(params.get('email') || 'N/A'),
+                    desc: decodeURIComponent(params.get('desc') || 'Payment Receipt')
+                };
+
+                console.log("Parsed data:", data);
+                return data;
+            } catch (error) {
+                console.error("Error parsing QR data:", error);
+                showError('Failed to parse QR data: ' + error.message);
+                return null;
+            }
+        }
+
+        // Display the verification data
+        function displayPaymentData(data) {
+            if (!data) {
+                console.log("No data to display");
+                return;
+            }
+
+            console.log("Displaying payment data:", data);
+
+            // Format amount with currency symbol
+            const amountFormatted = new Intl.NumberFormat('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(data.amt);
+
+            // Format date
+            const dateObj = new Date(data.date);
+            const dateFormatted = dateObj.toLocaleDateString('en-IN') + ' ' + dateObj.toLocaleTimeString('en-IN');
+
+            // Update DOM elements
+            document.getElementById('amountDisplay').textContent = '₹' + amountFormatted;
+            document.getElementById('currencyDisplay').textContent = data.cur;
+            document.getElementById('statusDisplay').textContent = data.status;
+            document.getElementById('txnIdDisplay').textContent = data.txn;
+            document.getElementById('paymentIdDisplay').textContent = data.pid;
+            document.getElementById('userNameDisplay').textContent = data.user;
+            document.getElementById('emailDisplay').textContent = data.email;
+            document.getElementById('dateDisplay').textContent = dateFormatted;
+            document.getElementById('descDisplay').textContent = data.desc;
+
+            // Update status badge color based on status
+            const statusBadge = document.querySelector('.status-badge');
+            statusBadge.className = 'status-badge';
+
+            if (data.status === 'SUCCESS') {
+                statusBadge.classList.add('success');
+            } else if (data.status === 'PENDING') {
+                statusBadge.classList.add('pending');
+            } else {
+                statusBadge.classList.add('failed');
+            }
+
+            document.getElementById('successState').style.display = 'block';
+
+            // Show debug info in development
+            const debug = {
+                transactionId: data.txn,
+                amount: data.amt + ' ' + data.cur,
+                status: data.status,
+                user: data.user
+            };
+            document.getElementById('debugContent').textContent = JSON.stringify(debug, null, 2);
+        }
+
+        // Show error state
+        function showError(message) {
+            console.error("Showing error:", message);
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('currentUrl').textContent = window.location.href;
+            document.getElementById('queryString').textContent = window.location.search;
+            document.getElementById('errorState').style.display = 'block';
+        }
+
+        // Download receipt (placeholder)
+        function downloadReceipt() {
+            alert('Receipt download functionality will be implemented soon');
+        }
+
+        // Go home
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM Content Loaded");
+            const data = parseQRData();
+            if (data) {
+                console.log("Valid data found, displaying...");
+                displayPaymentData(data);
+            } else {
+                console.log("No valid data found");
+            }
+        });
+    </script>
+</body>
+</html>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .details-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #667eea;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .amount-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .amount-section .label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .amount-section .amount {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .amount-section .currency {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .verification-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .check-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #d4edda;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #155724;
+        }
+
+        .check-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #155724;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .error-state h2 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+
+        .error-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .amount-section .amount {
+                font-size: 28px;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-animation {
+            animation: successBounce 0.6s ease-out;
+        }
+
+        @keyframes successBounce {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Loading State -->
+        <div id="loadingState" style="display: none;">
+            <div class="header">
+                <h1>Verifying Payment</h1>
+                <p>Please wait while we verify your transaction</p>
+            </div>
+            <div class="content" style="text-align: center;">
+                <div class="loader"></div>
+                <p style="margin-top: 20px; color: #666;">Processing your request...</p>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" style="display: none;">
+            <div class="header">
+                <h1>✓ Payment Verified</h1>
+                <p>Your transaction has been successfully verified</p>
+            </div>
+            <div class="content success-animation">
+                <div class="verification-check" style="display: flex; justify-content: center;">
+                    <div class="check-icon">✓</div>
+                </div>
+
+                <div class="status-badge success" style="display: block; text-align: center;">
+                    <span id="statusDisplay">Success</span>
+                </div>
+
+                <div class="amount-section">
+                    <div class="label">Transaction Amount</div>
+                    <div class="amount">
+                        <span id="amountDisplay">₹0.00</span>
+                    </div>
+                    <div class="currency" id="currencyDisplay">INR</div>
+                </div>
+
+                <div class="details-section">
+                    <div class="detail-row">
+                        <div class="detail-label">Transaction ID</div>
+                        <div class="detail-value" id="txnIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Payment ID</div>
+                        <div class="detail-value" id="paymentIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">User Name</div>
+                        <div class="detail-value" id="userNameDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" id="emailDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Date & Time</div>
+                        <div class="detail-value" id="dateDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" id="descDisplay">-</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="downloadReceipt()">📥 Download Receipt</button>
+                    <button class="btn btn-secondary" onclick="goHome()">🏠 Go Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none;">
+            <div class="header">
+                <h1>⚠ Verification Failed</h1>
+                <p>Unable to verify the scanned data</p>
+            </div>
+            <div class="content error-state">
+                <div class="error-icon">❌</div>
+                <h2>Invalid QR Data</h2>
+                <p id="errorMessage">The scanned QR code data is not valid or has been corrupted.</p>
+                <button class="btn btn-primary" onclick="goHome()">🏠 Go Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parse QR data from URL
+        function parseQRData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const qrData = urlParams.get('data');
+
+            if (!qrData) {
+                showError('No QR data provided');
+                return null;
+            }
+
+            try {
+                // Parse the QR data in format: txn=X&pid=Y&amt=Z&cur=C&status=S&date=D&user=U&email=E&desc=DESC
+                const params = new URLSearchParams(qrData);
+
+                const data = {
+                    txn: params.get('txn') || 'N/A',
+                    pid: params.get('pid') || 'N/A',
+                    amt: parseFloat(params.get('amt')) || 0,
+                    cur: params.get('cur') || 'INR',
+                    status: params.get('status') || 'UNKNOWN',
+                    date: params.get('date') || 'N/A',
+                    user: decodeURIComponent(params.get('user') || 'N/A'),
+                    email: decodeURIComponent(params.get('email') || 'N/A'),
+                    desc: decodeURIComponent(params.get('desc') || 'Payment Receipt')
+                };
+
+                return data;
+            } catch (error) {
+                showError('Failed to parse QR data: ' + error.message);
+                return null;
+            }
+        }
+
+        // Display the verification data
+        function displayPaymentData(data) {
+            if (!data) return;
+
+            // Format amount with currency symbol
+            const amountFormatted = new Intl.NumberFormat('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(data.amt);
+
+            // Format date
+            const dateObj = new Date(data.date);
+            const dateFormatted = dateObj.toLocaleDateString('en-IN') + ' ' + dateObj.toLocaleTimeString('en-IN');
+
+            // Update DOM elements
+            document.getElementById('amountDisplay').textContent = '₹' + amountFormatted;
+            document.getElementById('currencyDisplay').textContent = data.cur;
+            document.getElementById('statusDisplay').textContent = data.status;
+            document.getElementById('txnIdDisplay').textContent = data.txn;
+            document.getElementById('paymentIdDisplay').textContent = data.pid;
+            document.getElementById('userNameDisplay').textContent = data.user;
+            document.getElementById('emailDisplay').textContent = data.email;
+            document.getElementById('dateDisplay').textContent = dateFormatted;
+            document.getElementById('descDisplay').textContent = data.desc;
+
+            // Update status badge color based on status
+            const statusBadge = document.querySelector('.status-badge');
+            statusBadge.className = 'status-badge';
+
+            if (data.status === 'SUCCESS') {
+                statusBadge.classList.add('success');
+            } else if (data.status === 'PENDING') {
+                statusBadge.classList.add('pending');
+            } else {
+                statusBadge.classList.add('failed');
+            }
+
+            document.getElementById('successState').style.display = 'block';
+        }
+
+        // Show error state
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorState').style.display = 'block';
+        }
+
+        // Download receipt (placeholder)
+        function downloadReceipt() {
+            alert('Receipt download functionality to be implemented');
+        }
+
+        // Go home
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = parseQRData();
+            if (data && data.status === 'SUCCESS') {
+                displayPaymentData(data);
+            } else if (data) {
+                displayPaymentData(data); // Show even pending/failed
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 30px;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .details-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .amount-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .amount-section .label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .amount-section .amount {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .amount-section .currency {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .check-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #d4edda;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #155724;
+            margin: 20px auto;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .amount-section .amount {
+                font-size: 28px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        .success-animation {
+            animation: successBounce 0.6s ease-out;
+        }
+
+        @keyframes successBounce {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .error-state h2 {
+            color: #721c24;
+            margin-bottom: 10px;
+        }
+
+        .error-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Success State -->
+        <div id="successState">
+            <div class="header">
+                <h1>✓ Payment Verified</h1>
+                <p>Your transaction has been successfully verified</p>
+            </div>
+            <div class="content success-animation">
+                <div class="check-icon">✓</div>
+
+                <div class="status-badge success" style="display: block; text-align: center;">
+                    <span id="statusDisplay">Success</span>
+                </div>
+
+                <div class="amount-section">
+                    <div class="label">Transaction Amount</div>
+                    <div class="amount">
+                        <span id="amountDisplay">₹0.00</span>
+                    </div>
+                    <div class="currency" id="currencyDisplay">INR</div>
+                </div>
+
+                <div class="details-section">
+                    <div class="detail-row">
+                        <div class="detail-label">Transaction ID</div>
+                        <div class="detail-value" id="txnIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Payment ID</div>
+                        <div class="detail-value" id="paymentIdDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">User Name</div>
+                        <div class="detail-value" id="userNameDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" id="emailDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Date & Time</div>
+                        <div class="detail-value" id="dateDisplay">-</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" id="descDisplay">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden">
+            <div class="header">
+                <h1>⚠ Verification Failed</h1>
+                <p>Unable to verify the scanned data</p>
+            </div>
+            <div class="content error-state">
+                <div class="error-icon">❌</div>
+                <h2>Invalid QR Data</h2>
+                <p id="errorMessage">The scanned QR code data is not valid or has been corrupted.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("Payment Verification Page Loaded");
+        console.log("Full URL:", window.location.href);
+        console.log("Search params:", window.location.search);
+
+        function parseQRData() {
+            console.log("=== Parsing QR Data ===");
+            const fullUrl = window.location.href;
+            console.log("Full URL:", fullUrl);
+
+            // Extract the data parameter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            let qrData = urlParams.get('data');
+
+            console.log("Raw QR Data from URL:", qrData);
+
+            if (!qrData) {
+                console.error("No QR data found in URL parameters");
+                showError('No QR data provided in URL');
+                return null;
+            }
+
+            try {
+                // Parse the query string directly
+                const params = new URLSearchParams(qrData);
+
+                const data = {
+                    txn: params.get('txn') || 'N/A',
+                    pid: params.get('pid') || 'N/A',
+                    amt: params.get('amt') || '0',
+                    cur: params.get('cur') || 'INR',
+                    status: params.get('status') || 'UNKNOWN',
+                    date: params.get('date') || 'N/A',
+                    user: params.get('user') || 'N/A',
+                    email: params.get('email') || 'N/A',
+                    desc: params.get('desc') || 'Payment Receipt'
+                };
+
+                console.log("Parsed data:", data);
+                return data;
+            } catch (error) {
+                console.error("Error parsing QR data:", error);
+                showError('Failed to parse QR data: ' + error.message);
+                return null;
+            }
+        }
+
+        function displayPaymentData(data) {
+            if (!data) {
+                console.log("No data to display");
+                return;
+            }
+
+            console.log("=== Displaying Payment Data ===");
+            console.log("Status from data:", data.status);
+
+            // Parse and format amount
+            const amountValue = parseFloat(data.amt) || 0;
+            const amountFormatted = new Intl.NumberFormat('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amountValue);
+
+            console.log("Amount formatted:", amountFormatted);
+
+            // Format date
+            let dateFormatted = 'N/A';
+            if (data.date && data.date !== 'N/A') {
+                try {
+                    const dateObj = new Date(data.date);
+                    if (!isNaN(dateObj.getTime())) {
+                        dateFormatted = dateObj.toLocaleDateString('en-IN') + ' ' + dateObj.toLocaleTimeString('en-IN');
+                    } else {
+                        dateFormatted = data.date;
+                    }
+                } catch (e) {
+                    console.log("Could not parse date:", data.date);
+                    dateFormatted = data.date;
+                }
+            }
+
+            console.log("Date formatted:", dateFormatted);
+
+            // Update DOM elements
+            document.getElementById('amountDisplay').textContent = '₹' + amountFormatted;
+            document.getElementById('currencyDisplay').textContent = data.cur;
+            document.getElementById('statusDisplay').textContent = data.status;
+            document.getElementById('txnIdDisplay').textContent = data.txn;
+            document.getElementById('paymentIdDisplay').textContent = data.pid;
+            document.getElementById('userNameDisplay').textContent = data.user;
+            document.getElementById('emailDisplay').textContent = data.email;
+            document.getElementById('dateDisplay').textContent = dateFormatted;
+            document.getElementById('descDisplay').textContent = data.desc;
+
+            // Update header and icon based on status
+            const header = document.querySelector('.header h1');
+            const headerSub = document.querySelector('.header p');
+            const checkIcon = document.querySelector('.check-icon');
+            const statusBadge = document.querySelector('.status-badge');
+
+            statusBadge.className = 'status-badge';
+
+            if (data.status === 'SUCCESS') {
+                header.innerHTML = '✓ Payment Verified';
+                headerSub.textContent = 'Your transaction has been successfully verified';
+                checkIcon.textContent = '✓';
+                checkIcon.style.background = '#d4edda';
+                checkIcon.style.color = '#155724';
+                statusBadge.classList.add('success');
+            } else if (data.status === 'PENDING') {
+                header.innerHTML = '⏳ Payment Pending';
+                headerSub.textContent = 'Your transaction is being processed';
+                checkIcon.textContent = '⏳';
+                checkIcon.style.background = '#fff3cd';
+                checkIcon.style.color = '#856404';
+                statusBadge.classList.add('pending');
+            } else if (data.status === 'FAILED') {
+                header.innerHTML = '✗ Payment Failed';
+                headerSub.textContent = 'Your transaction could not be processed';
+                checkIcon.textContent = '✗';
+                checkIcon.style.background = '#f8d7da';
+                checkIcon.style.color = '#721c24';
+                statusBadge.classList.add('failed');
+            } else {
+                header.innerHTML = '? Payment Status Unknown';
+                headerSub.textContent = 'Unable to determine transaction status';
+                checkIcon.textContent = '?';
+                checkIcon.style.background = '#e2e3e5';
+                checkIcon.style.color = '#383d41';
+                statusBadge.classList.add('failed');
+            }
+
+            console.log("Payment data displayed successfully with status: " + data.status);
+        }
+
+        function showError(message) {
+            console.error("Error:", message);
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('successState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded, initializing...");
+            const data = parseQRData();
+            if (data) {
+                console.log("Data found, displaying...");
+                displayPaymentData(data);
+            } else {
+                console.log("No valid data found");
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
