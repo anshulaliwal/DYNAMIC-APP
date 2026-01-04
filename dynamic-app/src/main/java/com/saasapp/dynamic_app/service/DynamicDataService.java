@@ -5,6 +5,8 @@ import com.saasapp.dynamic_app.repository.DynamicDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 
 @Service
@@ -15,6 +17,7 @@ public class DynamicDataService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Transactional
     public void saveDynamicData(String userId, String key, Object data, java.time.Instant updatedTime, String updatedBy) {
         try {
             // Convert object to JSON string
@@ -36,6 +39,7 @@ public class DynamicDataService {
         return repository.findByUserIdAndKey(userId, key);
     }
 
+    @Transactional
     public void updateDynamicData(String userId, String key, Object data, java.time.Instant updatedTime, String updatedBy) {
         try {
             Optional<DynamicData> existing = repository.findByUserIdAndKey(userId, key);
