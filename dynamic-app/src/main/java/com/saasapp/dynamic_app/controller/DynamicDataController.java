@@ -70,14 +70,22 @@ public class DynamicDataController {
         }
     }
 
+    @PostMapping("/test")
+    public ResponseEntity<String> testPost(@RequestBody(required = false) String body) {
+        logger.info("Test POST endpoint hit. Body: {}", body);
+        return ResponseEntity.ok("POST received");
+    }
+
     @GetMapping("/{userId}/{key}")
     public ResponseEntity<?> getDynamicData(
             @PathVariable String userId,
             @PathVariable String key
     ) {
+        logger.debug("Received get request - userId: {}, key: {}", userId, key);
         Optional<DynamicData> data = service.getDynamicData(userId, key);
         if (data.isPresent()) {
             try {
+                logger.debug("Data found for userId: {}, key: {}", userId, key);
                 // Return the raw JSON string as response
                 return ResponseEntity.ok(data.get().getData());
             } catch (Exception e) {
@@ -85,7 +93,7 @@ public class DynamicDataController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving data");
             }
         }
+        logger.warn("No data found for userId: {}, key: {}", userId, key);
         return ResponseEntity.notFound().build();
     }
 }
-
