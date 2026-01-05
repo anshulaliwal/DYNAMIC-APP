@@ -61,10 +61,12 @@ public class DynamicDataController {
         } catch (com.fasterxml.jackson.core.JsonParseException e) {
             logger.error("JSON parse error: {}", e.getMessage());
             return ResponseEntity.badRequest().body("JSON parse error: " + e.getOriginalMessage());
-        } catch (RuntimeException e) {
-            logger.error("Failed to save/update data - {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save/update: " + e.getMessage());
-        } catch (Exception e) {
+        }
+//        catch (RuntimeException e) {
+//            logger.error("Failed to save/update data - {}", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save/update: " + e.getMessage());
+//        }
+          catch (Exception e) {
             logger.error("Unexpected error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
