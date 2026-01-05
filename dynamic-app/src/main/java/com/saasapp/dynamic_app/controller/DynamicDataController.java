@@ -81,7 +81,7 @@ public class DynamicDataController {
             @PathVariable String userId,
             @PathVariable String key
     ) {
-        logger.debug("Received get request - userId: {}, key: {}", userId, key);
+            logger.debug("Received get request - userId: {}, key: {}", userId, key);
         Optional<DynamicData> data = service.getDynamicData(userId, key);
         if (data.isPresent()) {
             try {
