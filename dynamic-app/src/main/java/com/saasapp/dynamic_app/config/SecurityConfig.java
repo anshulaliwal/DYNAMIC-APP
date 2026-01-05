@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").permitAll()
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
+                        .requestMatchers("/api/dynamic/**").permitAll()
                         .requestMatchers("/api/auth/**").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
