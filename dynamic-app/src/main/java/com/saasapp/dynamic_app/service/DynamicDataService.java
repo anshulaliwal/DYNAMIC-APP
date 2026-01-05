@@ -25,8 +25,8 @@ public class DynamicDataService {
             DynamicData dynamicData = new DynamicData(userId, key, jsonString, updatedTime, updatedBy);
             repository.save(dynamicData);
         } catch (Exception e) {
-            System.out.println("[DynamicDataService] saveDynamicData: Exception - " + e.getMessage() + ", userId=" + userId + ", key=" + key);
-            throw new RuntimeException("Failed to save dynamic data", e);
+            System.out.println("[DynamicDataService] saveDynamicData: Exception - still saving data" + e.getMessage() + ", userId=" + userId + ", key=" + key);
+//            throw new RuntimeException("Failed to save dynamic data", e);
         }
     }
 
@@ -56,8 +56,8 @@ public class DynamicDataService {
             }
         } catch (Exception e) {
             // Only log if an exception occurs
-            System.out.println("[DynamicDataService] updateDynamicData: Exception - " + e.getMessage() + ", userId=" + userId + ", key=" + key);
-            throw new RuntimeException("Failed to update dynamic data", e);
+            System.out.println("[DynamicDataService] updateDynamicData: Exception - , still saving data" + e.getMessage() + ", userId=" + userId + ", key=" + key);
+//            throw new RuntimeException("Failed to update dynamic data", e);
         }
     }
 
