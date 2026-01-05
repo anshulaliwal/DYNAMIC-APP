@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers("/api/payment/**").permitAll()
                         .requestMatchers("/api/dynamic/**").permitAll()
+                        .requestMatchers("/test").permitAll()
                         .requestMatchers("/api/auth/**").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -71,10 +72,13 @@ public class DynamicDataController {
     }
 
     @PostMapping("/test")
-    public ResponseEntity<String> testPost(@RequestBody(required = false) String body) {
-        logger.info("Test POST endpoint hit. Body: {}", body);
+    public ResponseEntity<String> testPost(@RequestBody(required = false) Map<String, Object> body) {
+        if (body == null || body.isEmpty()) {
+            return ResponseEntity.ok("POST received with empty body");
+        }
         return ResponseEntity.ok("POST received");
     }
+
 
     @GetMapping("/fetch/{userId}/{key}")
     public ResponseEntity<?> getDynamicData(
