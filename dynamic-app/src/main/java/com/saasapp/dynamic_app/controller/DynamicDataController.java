@@ -28,7 +28,7 @@ public class DynamicDataController {
     @Autowired
     private DynamicDataService service;
 
-    @PostMapping("/{userId}/{key}")
+    @PostMapping("/update/{userId}/{key}")
     public ResponseEntity<String> saveOrUpdateDynamicData(
             @PathVariable String userId,
             @PathVariable String key,
@@ -61,12 +61,10 @@ public class DynamicDataController {
         } catch (com.fasterxml.jackson.core.JsonParseException e) {
             logger.error("JSON parse error: {}", e.getMessage());
             return ResponseEntity.badRequest().body("JSON parse error: " + e.getOriginalMessage());
-        }
-//        catch (RuntimeException e) {
-//            logger.error("Failed to save/update data - {}", e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save/update: " + e.getMessage());
-//        }
-          catch (Exception e) {
+        } catch (RuntimeException e) {
+            logger.error("Failed to save/update data - {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save/update: " + e.getMessage());
+        } catch (Exception e) {
             logger.error("Unexpected error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
@@ -78,7 +76,7 @@ public class DynamicDataController {
         return ResponseEntity.ok("POST received");
     }
 
-    @GetMapping("/{userId}/{key}")
+    @GetMapping("/fetch/{userId}/{key}")
     public ResponseEntity<?> getDynamicData(
             @PathVariable String userId,
             @PathVariable String key
