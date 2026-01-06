@@ -13,6 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"https://client-ca-saas-app.vercel.app", "https://super-saas-app.vercel.app", "http://localhost:3000", "http://localhost:3001"},
+        allowedHeaders = "*",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+        allowCredentials = "true",
+        maxAge = 3600)
+
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
