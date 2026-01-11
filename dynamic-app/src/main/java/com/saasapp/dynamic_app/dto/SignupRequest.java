@@ -30,6 +30,9 @@ public class SignupRequest {
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
 
+    @NotBlank(message = "OTP is required")
+    private String otp;
+
     private String role;
 }
 

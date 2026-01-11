@@ -25,6 +25,19 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@Valid @RequestBody SendOtpRequest request) {
+        try {
+            logger.info("Send OTP request received for: {}", request.getEmail());
+            OtpResponse response = authService.sendOtp(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            logger.error("Send OTP failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage(), "SEND_OTP_FAILED"));
+        }
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request) {
         try {

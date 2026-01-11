@@ -39,6 +39,127 @@ public class EmailServiceImpl implements EmailService {
     private String supportEmail;
 
     /**
+     * Send OTP email for email verification
+     */
+    @Override
+    public void sendOtpEmail(String email, String otp) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(email);
+            helper.setSubject("Email Verification - Your OTP");
+
+            String emailContent = String.format(
+                """
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: Arial, sans-serif; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+                            .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 20px; text-align: center; border-radius: 8px; }
+                            .content { background: white; padding: 30px; margin-top: 20px; border-radius: 8px; }
+                            .otp-box { background: #f0f0f0; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; border: 2px solid #667eea; }
+                            .otp-code { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; }
+                            .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>Email Verification</h1>
+                            </div>
+                            <div class="content">
+                                <p>Hello,</p>
+                                <p>Your OTP for email verification is:</p>
+                                <div class="otp-box">
+                                    <div class="otp-code">%s</div>
+                                </div>
+                                <p style="color: #666;">This OTP will expire in 10 minutes.</p>
+                                <p style="color: #999; font-size: 14px;">If you didn't request this OTP, please ignore this email.</p>
+                            </div>
+                            <div class="footer">
+                                <p>DynamicApp | Automated Email</p>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+                """,
+                otp
+            );
+
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            log.info("OTP email sent successfully to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send OTP email to {}: {}", email, e.getMessage());
+            throw new RuntimeException("Failed to send OTP email", e);
+        }
+    }
+
+    /**
+     * Send welcome email after successful signup
+     */
+    @Override
+    public void sendWelcomeEmail(String email, String fullName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(email);
+            helper.setSubject("Welcome to Dynamic App!");
+
+            String emailContent = String.format(
+                """
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: Arial, sans-serif; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+                            .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 20px; text-align: center; border-radius: 8px; }
+                            .content { background: white; padding: 30px; margin-top: 20px; border-radius: 8px; }
+                            .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+                            .button { background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>Welcome!</h1>
+                            </div>
+                            <div class="content">
+                                <p>Hello %s,</p>
+                                <p>Welcome to Dynamic App!</p>
+                                <p>Your email has been verified and your account is now active.</p>
+                                <p>You can now log in and start using our platform.</p>
+                                <a href="http://localhost:3000/login" class="button">Log In Now</a>
+                                <p style="color: #999; font-size: 14px; margin-top: 30px;">Thank you for signing up!</p>
+                            </div>
+                            <div class="footer">
+                                <p>DynamicApp | Automated Email</p>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+                """,
+                fullName
+            );
+
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+            log.info("Welcome email sent to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}: {}", email, e.getMessage());
+        }
+    }
+
+    /**
      * Send payment receipt email synchronously
      * Logs success/failure and throws exception on failure
      */
