@@ -65,9 +65,11 @@ public class JwtTokenProvider {
     public String getUsernameFromToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
-            return claims.getSubject();
+            String subject = claims.getSubject();
+            logger.debug("Successfully extracted subject from token: {}", subject);
+            return subject;
         } catch (Exception e) {
-            logger.error("Error extracting username from token: {}", e.getMessage());
+            logger.error("Error extracting username from token: {}", e.getMessage(), e);
             return null;
         }
     }

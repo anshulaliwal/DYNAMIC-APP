@@ -52,10 +52,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        // First, try to get token from Authorization header
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            logger.debug("JWT token found in Authorization header");
             return bearerToken.substring(7);
         }
+
+        // Fallback: try to get token from authToken cookie
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if ("authToken".equals(cookie.getName())) {
+                    logger.debug("JWT token found in authToken cookie");
+                    return cookie.getValue();
+                }
+            }
+        }
+
         return null;
     }
 }

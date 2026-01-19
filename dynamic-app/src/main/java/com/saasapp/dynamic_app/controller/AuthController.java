@@ -4,6 +4,7 @@ import com.saasapp.dynamic_app.dto.*;
 import com.saasapp.dynamic_app.service.AuthService;
 import jakarta.validation.Valid;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import org.slf4j.Logger;
@@ -49,10 +50,16 @@ public class AuthController {
             // Create and add authToken cookie
             Cookie cookie = new Cookie("authToken", signupResponse.getToken());
             cookie.setHttpOnly(true);
-            cookie.setSecure(true); // HTTPS only - secure for production
+            cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(604800); // 7 days
             response.addCookie(cookie);
+
+            // Also add Set-Cookie header with SameSite attribute
+            response.addHeader("Set-Cookie", String.format(
+                "authToken=%s; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Lax",
+                signupResponse.getToken()
+            ));
 
             return ResponseEntity.status(HttpStatus.CREATED).body(signupResponse);
         } catch (RuntimeException e) {
@@ -71,10 +78,16 @@ public class AuthController {
             // Create and add authToken cookie
             Cookie cookie = new Cookie("authToken", authResponse.getToken());
             cookie.setHttpOnly(true);
-            cookie.setSecure(true); // HTTPS only - secure for production
+            cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(604800); // 7 days
             response.addCookie(cookie);
+
+            // Also add Set-Cookie header with SameSite attribute
+            response.addHeader("Set-Cookie", String.format(
+                "authToken=%s; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Lax",
+                authResponse.getToken()
+            ));
 
             return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
@@ -84,12 +97,27 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+    @PostMapping("/validate")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         try {
             logger.info("Token refresh request received");
-            AuthResponse response = authService.refreshToken(request);
-            return ResponseEntity.ok(response);
+            AuthResponse authResponse = authService.refreshToken(request);
+
+            // Create and add authToken cookie
+            Cookie cookie = new Cookie("authToken", authResponse.getToken());
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(604800); // 7 days
+            response.addCookie(cookie);
+
+            // Also add Set-Cookie header with SameSite attribute
+            response.addHeader("Set-Cookie", String.format(
+                "authToken=%s; Path=/; Max-Age=604800; HttpOnly; Secure; SameSite=Lax",
+                authResponse.getToken()
+            ));
+
+            return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
             logger.error("Token refresh failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -152,6 +154,10 @@ public class AuthService {
             User savedUser = userRepository.save(user);
             logger.info("User registered successfully with id: {}", savedUser.getId());
 
+            // Generate tokens
+            String accessToken = tokenProvider.generateAccessToken(savedUser.getEmail());
+            String refreshToken = tokenProvider.generateRefreshToken(savedUser.getEmail());
+
             // Send welcome email
             emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullName());
 
@@ -162,6 +168,9 @@ public class AuthService {
                     .fullName(savedUser.getFullName())
                     .role(savedUser.getRole().name())
                     .createdAt(savedUser.getCreatedAt().toString())
+                    .token(accessToken)
+                    .refreshToken(refreshToken)
+                    .expiresIn(86400L)
                     .message("User registered successfully")
                     .build();
 
@@ -179,12 +188,14 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-            // Generate tokens
-            String accessToken = tokenProvider.generateAccessToken(authentication);
-            String refreshToken = tokenProvider.generateRefreshToken(((User) authentication.getPrincipal()).getEmail());
+            // Get the authenticated user
+            User user = (User) authentication.getPrincipal();
+
+            // Generate tokens using email (not authentication object)
+            String accessToken = tokenProvider.generateAccessToken(user.getEmail());
+            String refreshToken = tokenProvider.generateRefreshToken(user.getEmail());
 
             // Update last login
-            User user = (User) authentication.getPrincipal();
             user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
 
@@ -210,18 +221,60 @@ public class AuthService {
         }
     }
 
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public AuthResponse refreshToken(HttpServletRequest request) {
         try {
-            logger.debug("Processing token refresh");
+            logger.debug("Processing token refresh from cookie");
 
-            if (!tokenProvider.validateToken(request.getRefreshToken())) {
-                throw new RuntimeException("Invalid refresh token");
+            // Extract token from cookie first
+            String token = null;
+            Cookie[] cookies = request.getCookies();
+
+            if (cookies != null && cookies.length > 0) {
+                for (Cookie cookie : cookies) {
+                    logger.debug("Found cookie: {}", cookie.getName());
+                    if ("authToken".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        logger.debug("Found authToken cookie");
+                        break;
+                    }
+                }
+            } else {
+                logger.debug("No cookies found in request");
             }
 
-            String email = tokenProvider.getUsernameFromToken(request.getRefreshToken());
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Fallback: Check Authorization header if no cookie found
+            if (token == null || token.isEmpty()) {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    token = authHeader.substring(7); // Remove "Bearer " prefix
+                    logger.debug("Token found in Authorization header");
+                }
+            }
 
+            if (token == null || token.isEmpty()) {
+                logger.error("No authentication token found in cookie or Authorization header");
+                throw new RuntimeException("No authentication token found in cookie or Authorization header");
+            }
+
+            if (!tokenProvider.validateToken(token)) {
+                throw new RuntimeException("Invalid or expired token");
+            }
+
+            String email = tokenProvider.getUsernameFromToken(token);
+            logger.debug("Extracted email from token: {}", email);
+
+            if (email == null || email.trim().isEmpty()) {
+                logger.error("Email extracted from token is null or empty");
+                throw new RuntimeException("Invalid token: email is empty");
+            }
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> {
+                        logger.error("User not found for email: {}", email);
+                        return new RuntimeException("User not found for email: " + email);
+                    });
+
+            logger.debug("User found with ID: {}", user.getId());
             String newAccessToken = tokenProvider.generateAccessToken(email);
 
             logger.info("Token refreshed for user: {}", email);
