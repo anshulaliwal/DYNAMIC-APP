@@ -3,6 +3,8 @@ package com.saasapp.dynamic_app.controller;
 import com.saasapp.dynamic_app.dto.*;
 import com.saasapp.dynamic_app.service.AuthService;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +41,20 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request, HttpServletResponse response) {
         try {
             logger.info("Signup request received for: {}", request.getEmail());
-            SignupResponse response = authService.signup(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            SignupResponse signupResponse = authService.signup(request);
+
+            // Create and add authToken cookie
+            Cookie cookie = new Cookie("authToken", signupResponse.getToken());
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true); // HTTPS only - secure for production
+            cookie.setPath("/");
+            cookie.setMaxAge(604800); // 7 days
+            response.addCookie(cookie);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(signupResponse);
         } catch (RuntimeException e) {
             logger.error("Signup failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -52,11 +63,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         try {
             logger.info("Login request received for: {}", request.getEmail());
-            AuthResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
+            AuthResponse authResponse = authService.login(request);
+
+            // Create and add authToken cookie
+            Cookie cookie = new Cookie("authToken", authResponse.getToken());
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true); // HTTPS only - secure for production
+            cookie.setPath("/");
+            cookie.setMaxAge(604800); // 7 days
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
             logger.error("Login failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

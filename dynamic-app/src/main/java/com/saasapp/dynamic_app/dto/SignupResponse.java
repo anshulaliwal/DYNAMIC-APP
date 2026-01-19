@@ -21,5 +21,11 @@ public class SignupResponse {
     private String createdAt;
 
     private String message;
+
+    private String token;
+
+    private String refreshToken;
+
+    private Long expiresIn;
 }
 
